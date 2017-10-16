@@ -1,0 +1,33 @@
+[
+    {
+        "model": "category",
+        "keys": ["id"],
+        "data": {
+            "id": 1,
+            "name": "HotSauce",
+            "image": "./assets/img/products/01.jpg"
+        }
+    },
+
+    {
+        "model": "category",
+        "keys": ["id"],
+        "data": {
+            "id": 2,
+            "name": "Cat 2",
+            "image": "./assets/img/products/08.jpg"
+        }
+    },
+
+    {
+        "model": "category",
+        "keys": ["id"],
+        "data": {
+            "id": 3,
+            "name": "Cat 3",
+            "image": "./assets/img/products/09.jpg"
+        }
+    }
+  
+]
+

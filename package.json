@@ -1,0 +1,30 @@
+{
+  "name": "hsm_ng_login",
+  "version": "1.0.0",
+  "description": "HSM MEAN APP-SERVER SIDE",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server"
+  },
+  "dependencies": {
+    "bcrypt": "*",
+    "body-parser": "*",
+    "compression": "*",
+    "cookie-parser": "*",
+    "cors": "*",
+    "dotenv": "*",
+    "express": "*",
+    "express-session": "*",
+    "jsonwebtoken": "*",
+    "morgan": "*",
+    "mysql": "*",
+    "mysql2": "*",
+    "passport-jwt": "*",
+    "sequelize": "*",
+    "sequelize-fixtures": "*",
+    "stripe": "^5.1.0"
+  },
+  "author": "Reza",
+  "license": "ISC"
+}
