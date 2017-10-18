@@ -50,7 +50,9 @@ db.sequelize.models.category.hasMany(db.sequelize.models.product, { foreignKey: 
 
 db.sequelize.models.user.hasMany(db.sequelize.models.order, { foreignKey: 'user_id' });
 
-db.sequelize.models.order.belongsToMany(db.sequelize.models.product, { through: db.sequelize.models.order_detail });
-db.sequelize.models.product.belongsToMany(db.sequelize.models.order, { through: db.sequelize.models.order_detail });
+db.sequelize.models.order.belongsToMany(db.sequelize.models.product, { through: db.sequelize.models.order_line });
+db.sequelize.models.product.belongsToMany(db.sequelize.models.order, { through: db.sequelize.models.order_line });
+
+db.sequelize.models.shipping_method.hasMany(db.sequelize.models.order, { foreignKey: 'shippingMethod_id' });
 
 module.exports = db;

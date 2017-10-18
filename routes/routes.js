@@ -10,7 +10,9 @@ module.exports = function(  app,
                             payment, 
                             category, 
                             customer,
-                            order){
+                            order,
+                            order_line,
+                            shipping_method){
 	const User = user;
   const Auth_user = auth_user;
   const Product = product;
@@ -18,6 +20,8 @@ module.exports = function(  app,
   const Category = category;
   const Customer = customer; 
   const Order = order;
+  const Order_line = order_line;
+  const Shipping_method = shipping_method;
 
   // login section
   app.post('/users/login', function(req, res) {
@@ -454,7 +458,7 @@ function sendUserToClient(user, msg, res){
   });
 
   
-
+  // category section
   app.get('/category', function(req,res,next) {
     console.log("REQ from client: ", req);
 
@@ -514,6 +518,56 @@ function sendUserToClient(user, msg, res){
         });
     });
 
+    app.get('/order/:id', function(req,res,next){
+      console.log("REQ>PARAM: ", req.params.id );
+      Order.findOne({where: {id: req.params.id}}).then((order) => {
+        if (!order){
+          req.msg = "No such a category in database!";
+          return res.json({success: false, msg:req.msg});
+        }else{
+          sendOrderToClient(order, "the product is found.", res);
+        }
+      }).catch(function(err){
+          console.log("###### Error : ", err);
+      });
+    })
+
+
+
+
+      // shipping method section
+  app.get('/shipping-method', function(req,res,next) {
+    console.log("REQ from client: ", req);
+
+    Shipping_method.findAll().then(function (shipping_methods) {
+      if (!shipping_methods) {
+        req.msg = "No category in database!";
+        return res.json({success: false, msg:req.msg});
+      }else{
+        sendShippingMethodsToClient(shipping_methods, "Categories are loaded successfully.", res);
+        }
+      }).catch(function(err){
+			  console.log("###### Error : ", err);												
+    });
+  })
+
+
+  app.get('/shipping-method/:id', function(req,res,next){
+    console.log("REQ>PARAM: ", req.params.id );
+    Shipping_method.findOne({where: {id: req.params.id}}).then((shipping_method) => {
+      if (!shipping_method){
+        req.msg = "No such a category in database!";
+        return res.json({success: false, msg:req.msg});
+      }else{
+        sendShippingMethodToClient(shipping_method, "the product is found.", res);
+      }
+    }).catch(function(err){
+			  console.log("###### Error : ", err);
+    });
+  })
+
+
+
 function sendProductToClient(product, msg, res){
   return res.json({ success: true,
                     msg: msg,
@@ -543,6 +597,30 @@ function sendCategoriesToClient(categories, msg, res){
                     categories: categories
                   });
 }
+
+
+function sendOrderToClient(order, msg, res){
+  return res.json({ success: true,
+                    msg: msg,
+                    order: order
+                  });
+}
+
+function sendShippingMethodToClient(shipping_method, msg, res){
+  return res.json({ success: true,
+                    msg: msg,
+                    shipping_method: shipping_method
+                  });
+}
+
+
+function sendShippingMethodsToClient(shipping_methods, msg, res){
+  return res.json({ success: true,
+                    msg: msg,
+                    shipping_methods: shipping_methods
+                  });
+}
+
 
 };
 
