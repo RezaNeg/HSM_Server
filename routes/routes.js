@@ -3,16 +3,17 @@ const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const stripe = require('stripe')(config.stripeKey);
 
-module.exports = function(  app,
-                            user, 
-                            auth_user, 
-                            product, 
-                            payment, 
-                            category, 
-                            customer,
-                            order,
-                            order_line,
-                            shipping_method){
+module.exports = function(app,
+                          user, 
+                          auth_user, 
+                          product, 
+                          payment, 
+                          category, 
+                          customer,
+                          order,
+                          order_line,
+                          shipping_method,
+                          address){
 	const User = user;
   const Auth_user = auth_user;
   const Product = product;
@@ -22,6 +23,7 @@ module.exports = function(  app,
   const Order = order;
   const Order_line = order_line;
   const Shipping_method = shipping_method;
+  const Address = address;
 
   // login section
   app.post('/users/login', function(req, res) {
@@ -460,7 +462,7 @@ function sendUserToClient(user, msg, res){
   
   // category section
   app.get('/category', function(req,res,next) {
-    console.log("REQ from client: ", req);
+    // console.log("CAT REQ from client: ", req);
 
     Category.findAll().then(function (category) {
       if (!category) {
@@ -533,11 +535,9 @@ function sendUserToClient(user, msg, res){
     })
 
 
-
-
       // shipping method section
   app.get('/shipping-method', function(req,res,next) {
-    console.log("REQ from client: ", req);
+    console.log("SHIP METHOD REQ from client: ", req.body);
 
     Shipping_method.findAll().then(function (shipping_methods) {
       if (!shipping_methods) {
@@ -566,6 +566,20 @@ function sendUserToClient(user, msg, res){
     });
   })
 
+
+  // Address section
+  app.post('/address', function(req, res) {
+    console.log("Address form CLIENT: ", req.body);
+    return Address.create(req.body).then(function(newAddress,created){
+      if(!newAddress){
+        return res.json({success: false, msg:'Failed to register address due to db error!'});
+      }else{
+        return res.json({success: true, msg:'Address is registered successfully.'});
+      }
+      }).catch((err) => {
+        return res.json({success: false, msg:'Something went wrong while registering new address!'});
+      });
+  });
 
 
 function sendProductToClient(product, msg, res){

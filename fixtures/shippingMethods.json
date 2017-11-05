@@ -1,0 +1,32 @@
+[
+    {
+        "model": "shipping_method",
+        "keys": ["id"],
+        "data": {
+            "id": 1,
+            "name": "Express",
+            "price": 9.99,
+            "desc": "Express desc"
+        }
+    },
+    {
+        "model": "shipping_method",
+        "keys": ["id"],
+        "data": {
+            "id": 2,
+            "name": "Normal",
+            "price": 5.99,
+            "desc": "Normal desc"
+        }
+    },
+    {
+        "model": "shipping_method",
+        "keys": ["id"],
+        "data": {
+            "id": 3,
+            "name": "DHL",
+            "price": 15.99,
+            "desc": "DHL desc"
+        }
+    }
+]

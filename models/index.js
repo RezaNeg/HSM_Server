@@ -55,4 +55,5 @@ db.sequelize.models.product.belongsToMany(db.sequelize.models.order, { through: 
 
 db.sequelize.models.shipping_method.hasMany(db.sequelize.models.order, { foreignKey: 'shippingMethod_id' });
 
+db.sequelize.models.user.hasMany(db.sequelize.models.address, { foreignKey: 'user_id' });
 module.exports = db;
