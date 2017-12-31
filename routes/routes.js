@@ -384,9 +384,9 @@ function sendUserToClient(user, msg, res){
     jwt.verify(str.substring(4), config.secret, function(err, user) {
       if(!err){
         console.log("decoded user: ", user);
-        //check it....................................TODO
+        //check it..........TODO.............. YOU better send only what is required not all of the user info backto client
         return res.json({user: user, msg: "You made it to the secure area"});
-      }else{ res.json({msg: "Your token is expired!"});}
+      }else{ return res.json({msg: "Your token is expired!"});}
     });
   
   });
@@ -570,17 +570,94 @@ function sendUserToClient(user, msg, res){
   // Address section
   app.post('/address', function(req, res) {
     console.log("Address form CLIENT: ", req.body);
-    return Address.create(req.body).then(function(newAddress,created){
-      if(!newAddress){
-        return res.json({success: false, msg:'Failed to register address due to db error!'});
+    Address.findOne({where: {id: req.body.id}}).then((address) =>{
+      if (!address){
+        return Address.create(req.body).then(function(newAddress,created){
+          if(!newAddress){
+            return res.json({success: false, msg:'Failed to register address due to db error!'});
+          }else{
+            return res.status(200).json(newAddress.get());
+            // return res.json({success: true, msg:'Address is registered successfully.'}, newAddress.get());
+          }
+          }).catch((err) => {
+            return res.status(500).json({msg:'Something went wrong while registering new address!'});
+            // return res.json({success: false, msg:'Something went wrong while registering new address!'});
+          });
       }else{
-        return res.json({success: true, msg:'Address is registered successfully.'});
+        return Address.update(req.body, {where: {id: req.body.id}}).then(()=>{
+          return res.json({success: true, address: req.body, msg:'address updated!'});
+        }).catch((err) => {
+          return res.json({success: false, msg:'Something went wrong while updating user address!'});
+        })
       }
-      }).catch((err) => {
-        return res.json({success: false, msg:'Something went wrong while registering new address!'});
-      });
+    }).catch();
+
   });
 
+  // Get specifique address
+  app.get('/address/:id', function(req,res,next){
+    console.log("REQ>PARAM: ", req.params.id );
+    Address.findOne({where: {id: req.params.id}}).then((address) => {
+      if (!address){
+        req.msg = "No such a address in database!";
+        return res.json({success: false, msg:req.msg});
+      }else{
+        console.log("address from server: ", address.dataValues);
+        sendAddressToClient(address, "the address is found.", res);
+      }
+    }).catch(function(err){
+			  console.log("###### Error : ", err);
+    });
+  })
+
+
+  // update user section
+	app.put("/users", function(req, res) {
+    const data = req.body;
+    
+    User.findOne({where: {email:req.body.email}}).then(function(user) {
+    if (user != null) {
+        // we are updating a user who has been logged in earlier only from social networks
+        return User.update(data, { where: { email: data.email} }).then(function(){
+          return res.json({success: true, msg:'User information is updated successfully.'});
+        }).catch((err) => {
+          return res.json({success: false, msg:'Something went wrong while updating user information!'});
+        });
+      }
+    });
+  });
+
+
+
+  app.get('/orders/:id', function(req,res,next){
+    console.log("REQ>PARAM: ", req.params.id );
+    Order.findAll({where: {user_id: req.params.id}}).then((orders) => {
+      if (!orders){
+        req.msg = "No order for the current user in database!";
+        return res.json({success: false, msg:req.msg});
+      }else{
+        console.log("List of Orders by the current User: ", JSON.stringify(orders));
+        sendOrdersToClient(orders, "the orders are found!", res);
+      }
+    }).catch(function(err){
+			  console.log("###### Error : ", err);
+    });
+  })
+  
+  app.get('/order-items/:id', function(req,res,next){
+    console.log("REQ>PARAM: ", req.params.id );
+    Order_line.findAll({where: {orderId: req.params.id}}).then((order_items) => {
+      if (!order_items){
+        req.msg = "No item for the current order in database!";
+        return res.json({success: false, msg:req.msg});
+      }else{
+        console.log("List of items in this order: ", JSON.stringify(order_items));
+        sendOrderItemsToClient(order_items, "the items are found!", res);
+      }
+    }).catch(function(err){
+			  console.log("###### Error : ", err);
+    });
+  })
 
 function sendProductToClient(product, msg, res){
   return res.json({ success: true,
@@ -620,6 +697,21 @@ function sendOrderToClient(order, msg, res){
                   });
 }
 
+function sendOrdersToClient(orders, msg, res){
+  return res.json({ success: true,
+                    msg: msg,
+                    orders: orders
+                  });
+}
+
+
+function sendOrderItemsToClient(items, msg, res){
+  return res.json({ success: true,
+                    msg: msg,
+                    items: items
+                  });
+}
+
 function sendShippingMethodToClient(shipping_method, msg, res){
   return res.json({ success: true,
                     msg: msg,
@@ -632,6 +724,13 @@ function sendShippingMethodsToClient(shipping_methods, msg, res){
   return res.json({ success: true,
                     msg: msg,
                     shipping_methods: shipping_methods
+                  });
+}
+
+function sendAddressToClient(address, msg, res){
+  return res.json({ success: true,
+                    msg: msg,
+                    address: address
                   });
 }
 

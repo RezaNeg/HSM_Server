@@ -6,7 +6,8 @@ module.exports = function(sequelize, Sequelize) {
         city: { type: Sequelize.STRING},
         state: { type: Sequelize.STRING},
         country: { type: Sequelize.STRING},
-        zip: { type: Sequelize.STRING}
+        zip: { type: Sequelize.STRING},
+        phone: { type: Sequelize.STRING},
 	});
 
 	return Address; 
