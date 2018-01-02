@@ -513,7 +513,7 @@ function sendUserToClient(user, msg, res){
         if(!newOrder){
           return res.json({success: false, msg:'Failed to register order due to db error!'});
         }else{
-          return res.json({success: true, msg:'Order is registered successfully.'});
+          return res.json({success: true, order: newOrder, msg:'Order is registered successfully.'});
         }
         }).catch((err) => {
           return res.json({success: false, msg:'Something went wrong while registering new order!'});
@@ -644,20 +644,65 @@ function sendUserToClient(user, msg, res){
     });
   })
   
-  app.get('/order-items/:id', function(req,res,next){
-    console.log("REQ>PARAM: ", req.params.id );
-    Order_line.findAll({where: {orderId: req.params.id}}).then((order_items) => {
-      if (!order_items){
-        req.msg = "No item for the current order in database!";
-        return res.json({success: false, msg:req.msg});
+
+  app.post('/order-items/:id', function(req, res, next) {
+    console.log("ORDER items form CLIENT: ", req.body);
+    console.log("REQ>PARAM (order number): ", req.params.id );
+    return Order_line.create(req.body).then(function(newOrderLine,created){
+      if(!newOrderLine){
+        return res.json({success: false, msg:'Failed to register order line due to db error!'});
       }else{
-        console.log("List of items in this order: ", JSON.stringify(order_items));
-        sendOrderItemsToClient(order_items, "the items are found!", res);
+        return res.json({success: true, item: newOrderLine, msg:'Order is registered successfully.'});
       }
-    }).catch(function(err){
-			  console.log("###### Error : ", err);
-    });
-  })
+      }).catch((err) => {
+        return res.json({success: false, msg:'Something went wrong while registering new order line!'});
+      });
+  });
+
+
+
+  // app.get('/order-items/:id', function(req,res,next){
+  //   console.log("REQ>PARAM: ", req.params.id );
+  //   Order_line.findAll({where: {orderId: req.params.id}}).then((order_items) => {
+  //     if (!order_items){
+  //       req.msg = "No item for the current order in database!";
+  //       return res.json({success: false, msg:req.msg});
+  //     }else{
+  //       console.log("List of items in this order: ", JSON.stringify(order_items));
+  //       sendOrderItemsToClient(order_items, "the items are found!", res);
+  //     }
+  //   }).catch(function(err){
+	// 		  console.log("###### Error : ", err);
+  //   });
+  // })
+
+  //inner join test! order line is nested in product array:
+  // app.get('/order-items/:id', function(req,res,next){
+  //   console.log("REQ>PARAM: ", req.params.id );
+  //   Product.findAll({
+  //     // where: {orderId: req.params.id},
+  //     include: [
+  //       {model: Order_line , where: {orderId: req.params.id}
+  //     }]
+  //     }).then(order_items=>{
+  //     console.log("order_items with product:  " ,JSON.stringify(order_items));
+  //     sendOrderItemsToClient(order_items, "the items are found!", res);
+  //     })
+  //   })    
+
+    app.get('/order-items/:id', function(req,res,next){
+      console.log("REQ>PARAM: ", req.params.id );
+      Order_line.findAll({
+        where: {orderId: req.params.id},
+        include: [ {model: Product
+        }]
+        }).then(order_items=>{
+        console.log("order_items with product:  " ,JSON.stringify(order_items));
+        sendOrderItemsToClient(order_items, "the items are found!", res);
+        })
+      })    
+
+
 
 function sendProductToClient(product, msg, res){
   return res.json({ success: true,
@@ -734,9 +779,9 @@ function sendAddressToClient(address, msg, res){
                   });
 }
 
-
-};
-
 function isCorrectPassword(userpass,password){
   return bCrypt.compareSync(userpass, password);
 }
+
+};
+

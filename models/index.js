@@ -36,24 +36,44 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 // setting table relations
-db.sequelize.models.user.hasMany(db.sequelize.models.auth_user, { foreignKey: 'user_id' });
-// db.sequelize.models.auth_user.belongsTo(db.sequelize.models.user, { foreignKey: 'user_id' });
+// 1 to many relation
+db.sequelize.models.product.hasMany(db.sequelize.models.order_line);
+db.sequelize.models.order_line.belongsTo(db.sequelize.models.product);
 
-db.sequelize.models.provider.hasMany(db.sequelize.models.auth_user, { foreignKey: 'provider_id' });
-// db.sequelize.models.auth_user.belongsTo(db.sequelize.models.provider, { foreignKey: 'provider_id' });
+// 1 to many relation
+db.sequelize.models.category.hasMany(db.sequelize.models.product);
+db.sequelize.models.product.belongsTo(db.sequelize.models.category);
 
-db.sequelize.models.user.hasMany(db.sequelize.models.payment, { foreignKey: 'user_id' });
-// db.sequelize.models.payment.belongsTo(db.sequelize.models.user, { foreignKey: 'user_id' });
+// 1 to many relation
+db.sequelize.models.order.hasMany(db.sequelize.models.order_line);
+db.sequelize.models.order_line.belongsTo(db.sequelize.models.order);
 
-db.sequelize.models.category.hasMany(db.sequelize.models.product, { foreignKey: 'cat_id' });
-// db.sequelize.models.product.belongsTo(db.sequelize.models.category, { foreignKey: 'cat_id' });
+// 1 to many relation
+db.sequelize.models.user.hasMany(db.sequelize.models.auth_user);
+db.sequelize.models.auth_user.belongsTo(db.sequelize.models.user);
 
-db.sequelize.models.user.hasMany(db.sequelize.models.order, { foreignKey: 'user_id' });
+// 1 to many relation
+db.sequelize.models.provider.hasMany(db.sequelize.models.auth_user);
+db.sequelize.models.auth_user.belongsTo(db.sequelize.models.provider);
 
-db.sequelize.models.order.belongsToMany(db.sequelize.models.product, { through: db.sequelize.models.order_line });
-db.sequelize.models.product.belongsToMany(db.sequelize.models.order, { through: db.sequelize.models.order_line });
+// 1 to many relation
+db.sequelize.models.user.hasMany(db.sequelize.models.order);
+db.sequelize.models.order.belongsTo(db.sequelize.models.user);
 
-db.sequelize.models.shipping_method.hasMany(db.sequelize.models.order, { foreignKey: 'shippingMethod_id' });
+// 1 to many relation
+db.sequelize.models.shipping_method.hasMany(db.sequelize.models.order);
+db.sequelize.models.order.belongsTo(db.sequelize.models.shipping_method);
 
-db.sequelize.models.address.hasMany(db.sequelize.models.user, { foreignKey: 'address_id' });
+// 1 to 1 relation
+db.sequelize.models.payment.hasMany(db.sequelize.models.order);
+
+// 1 to many relation 
+// (each user has only one adderss and one address may be assigned to differnet users)
+db.sequelize.models.address.hasMany(db.sequelize.models.user);
+db.sequelize.models.user.belongsTo(db.sequelize.models.address);
+
+// many to many relation for user and address as an option
+// db.sequelize.models.user.belongsToMany(db.sequelize.models.address, {through: 'UserAddress'});
+// db.sequelize.models.address.belongsToMany(db.sequelize.models.user, {through: 'UserAddress'});
+
 module.exports = db;

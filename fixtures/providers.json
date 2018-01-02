@@ -1,0 +1,38 @@
+[
+    {
+        "model": "provider",
+        "keys": ["id"],
+        "data": {
+            "id": 1,
+            "provider_name": "FaceBook"
+        }
+    },
+
+    {
+        "model": "provider",
+        "keys": ["id"],
+        "data": {
+            "id": 2,
+            "provider_name": "Google"
+        }
+    },
+
+    {
+        "model": "provider",
+        "keys": ["id"],
+        "data": {
+            "id": 3,
+            "provider_name": "LinkedIn"
+        }
+    },
+  
+    {
+        "model": "provider",
+        "keys": ["id"],
+        "data": {
+            "id": 4,
+            "provider_name": "Twitter"
+        }
+    }
+]
+

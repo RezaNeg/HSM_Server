@@ -1,3 +1,4 @@
+// no need to customer now; maybe later!
 module.exports = function(sequelize, Sequelize) {
 	// Sequelize user model is initialized earlier as User
 	var Customer = sequelize.define('customer', {

@@ -8,7 +8,7 @@
             "thumb": "./assets/img/products/01.jpg",
             "src": "./assets/img/products/11.jpg",
             "price": 9.99,
-            "cat_id": 1,
+            "categoryId": 1,
             "desc": "Mark’s Barbados Style Hot Sauce is a traditional Bajan style ‘pepper sauce’ featuring mango, papaya, pineapple and fiery Scotch Bonnet peppers. This sauce is both sweet and spicy and kept chunky offering a different flavour with each bite. A delicious tropical companion to any dish.\n\nIngredients: Spring water, mango, onion, scotch bonnet peppers, papaya, pineapple, carrot, vinegar, prepared mustard, sea salt, spices, rum, garlic.\n\nAll of my sauces are 100% natural and preservative-free. Hand-made in Montreal, Canada."
         }
     },
@@ -21,7 +21,7 @@
             "thumb": "./assets/img/products/02.jpg",
             "src": "./assets/img/products/12.jpg",
             "price": 19.99,
-            "cat_id": 1,
+            "categoryId": 1,
             "desc": "Mark’s Fermented Jalapeño hot sauce features bright and fresh-tasting green jalapeño and habanero chilies. Like Mark’s Red Chili sauce this sauce is fermented with white wine creating a unique flavour. Seeds are left in to provide extra heat and texture.\n\nIngredients: Jalapeño and habanero peppers, onion, white vinegar, apple cider vinegar*, sea salt, white wine, garlic, raw cane sugar. *Organic\n\nAll of my sauces are 100% natural and preservative-free. Hand-made in Montreal, Canada."
         }
     },
@@ -34,7 +34,7 @@
             "thumb": "./assets/img/products/03.jpg",
             "src": "./assets/img/products/13.jpg",
             "price": 29.99,
-            "cat_id": 1,
+            "categoryId": 1,
             "desc": "Mark’s Fermented Red Chili hot sauce features a unique blend of fermented red chilies. This sauce is fermented with white wine creating a unique and complex taste. Designed to be packed full of flavour, but not too hot to enjoy with all your favourite dishes.\n\nIngredients: Red chilis, onion, white vinegar, apple cider vinegar*, sea salt, white wine, garlic, raw cane sugar*. *Organic\n\nAll of my sauces are 100% natural and preservative-free. Hand-made in Montreal, Canada."
         }
     },
@@ -47,7 +47,7 @@
             "thumb": "./assets/img/products/04.jpg",
             "src": "./assets/img/products/14.jpg",
             "price": 39.99,
-            "cat_id": 1,
+            "categoryId": 1,
             "desc": "Product #4 description description description description description description..."
         }
     },
@@ -60,7 +60,7 @@
             "thumb": "./assets/img/products/05.jpg",
             "src": "./assets/img/products/15.jpg",
             "price": 49.99,
-            "cat_id": 2,
+            "categoryId": 2,
             "desc": "Product #5 description description description description description description..."
         }
     },
@@ -73,7 +73,7 @@
             "thumb": "./assets/img/products/06.jpg",
             "src": "./assets/img/products/16.jpg",
             "price": 59.99,
-            "cat_id": 2,
+            "categoryId": 2,
             "desc": "Product #6 description description description description description description..."
         }
     },
@@ -86,7 +86,7 @@
             "thumb": "./assets/img/products/07.jpg",
             "src": "./assets/img/products/17.jpg",
             "price": 69.99,
-            "cat_id": 2,
+            "categoryId": 2,
             "desc": "Product #7 description description description description description description..."
         }
     },
@@ -99,7 +99,7 @@
             "thumb": "./assets/img/products/08.jpg",
             "src": "./assets/img/products/18.jpg",
             "price": 79.99,
-            "cat_id": 2,
+            "categoryId": 2,
             "desc": "Product #1 description description description description description description..."
         }
     },
@@ -112,7 +112,7 @@
             "thumb": "./assets/img/products/09.jpg",
             "src": "./assets/img/products/19.jpg",
             "price": 89.99,
-            "cat_id": 3,
+            "categoryId": 3,
             "desc": "Product #9 description description description description description description..."
         }
     }
