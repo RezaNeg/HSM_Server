@@ -39,7 +39,9 @@ const models = require("./models");
 
 // calling the Sequelize sync function to sync database
 models.sequelize.sync({force: true}).then(() => {
-	// console.log(models.user);
+// models.sequelize.sync().then(() => {
+    
+  // console.log(models.user);
   console.log('You are connected to the database using sequelize module!');
   sequelize_fixtures.loadFile('./fixtures/*.json', models).then(() =>{
 	console.log("database is updated!");

@@ -113,13 +113,13 @@ module.exports = function(app,
           if(user){
             const dataForAuth_user =
             { 
-              user_id  	: user.id,
+              userId  	: user.id,
               auth_id 	: req.body.id,
               email     : req.body.email,
               firstname : req.body.first_name,
               lastname 	: req.body.last_name,
               displayName : req.body.name,
-              provider_id : 1
+              providerId : 1
             };
             const data = {
               f_id 	: req.body.id,
@@ -199,13 +199,13 @@ module.exports = function(app,
               }else{
               const dataForAuth_user =
                 {
-                  user_id  	  : newUser.id,
+                  userId  	  : newUser.id,
                   auth_id 	  : req.body.id,
                   firstname   : req.body.first_name,
                   lastname 	  : req.body.last_name,
                   displayName : req.body.name,
                   email       : req.body.email,
-                  provider_id : 1
+                  providerId : 1
                 };
                 console.log("@@@@@@@@@@@ creating a new facebook profile");
                 return Auth_user.create(dataForAuth_user).then(function(newAuthUser,created){
@@ -297,7 +297,7 @@ module.exports = function(app,
         dataForUser.l_name = req.body.name;
         break;
     }
-    dataForAuth_user.provider_id = prodiverId;
+    dataForAuth_user.providerId = prodiverId;
     
     // profile manipulation
     console.log("@@@@@@@@@@@ searching for f_id, g-id or t-id in user table");
@@ -310,7 +310,7 @@ module.exports = function(app,
         console.log("@@@@@@@@@@@ searching for social network email in user table");
         return User.findOne({ where : { email : req.body.email } }).then((user) => {
           if(user){
-            dataForAuth_user.user_id = user.id;
+            dataForAuth_user.userId = user.id;
             console.log("@@@@@@@@@@@ searching for auth_id in auth_user table");
             return Auth_user.findOne({ where : { auth_id: socialId } }).then((auth_user) =>{
               if(auth_user){
@@ -347,7 +347,7 @@ module.exports = function(app,
               if(!newUser){
                 return res.json({success: false, msg:'Problem in creating your local profile based on social network data!'});
               }else{
-                dataForAuth_user.user_id = newUser.id;
+                dataForAuth_user.userId = newUser.id;
                 console.log("@@@@@@@@@@@ creating a new authUser in auth table");
                 return Auth_user.create(dataForAuth_user).then((newAuthUser,created) => {
                   if(!newAuthUser){
@@ -428,7 +428,7 @@ function sendUserToClient(user, msg, res){
     const payment = {
                 token 		    : req.body.token,
                 amount    	  : req.body.amount,
-                user_id 	    : req.body.user_id    
+                userId 	    : req.body.userId    
                 };
     // testing charges!
     const charge2 = stripe.charges.create({
@@ -490,49 +490,6 @@ function sendUserToClient(user, msg, res){
 			  console.log("###### Error : ", err);
     });
   })
-
-  // customer section
-  app.post('/customer', function(req, res) {
-    console.log("CUSTOMER form CLIENT: ", req.body);
-    return User.create(req.body).then(function(newCustomer,created){
-      if(!newCustomer){
-        return res.json({success: false, msg:'Failed to register customer due to db error!'});
-      }else{
-        
-        return res.json({success: true, msg:'Cusotmer is registered successfully.', user_id: newCustomer.id});
-      }
-      }).catch((err) => {
-        return res.json({success: false, msg:'Something went wrong while registering new cusotmer!'});
-      });
-  });
-
-    // order section
-    app.post('/order', function(req, res) {
-      console.log("ORDER form CLIENT: ", req.body);
-      return Order.create(req.body).then(function(newOrder,created){
-        if(!newOrder){
-          return res.json({success: false, msg:'Failed to register order due to db error!'});
-        }else{
-          return res.json({success: true, order: newOrder, msg:'Order is registered successfully.'});
-        }
-        }).catch((err) => {
-          return res.json({success: false, msg:'Something went wrong while registering new order!'});
-        });
-    });
-
-    app.get('/order/:id', function(req,res,next){
-      console.log("REQ>PARAM: ", req.params.id );
-      Order.findOne({where: {id: req.params.id}}).then((order) => {
-        if (!order){
-          req.msg = "No such a category in database!";
-          return res.json({success: false, msg:req.msg});
-        }else{
-          sendOrderToClient(order, "the product is found.", res);
-        }
-      }).catch(function(err){
-          console.log("###### Error : ", err);
-      });
-    })
 
 
       // shipping method section
@@ -614,24 +571,92 @@ function sendUserToClient(user, msg, res){
   // update user section
 	app.put("/users", function(req, res) {
     const data = req.body;
-    
-    User.findOne({where: {email:req.body.email}}).then(function(user) {
-    if (user != null) {
-        // we are updating a user who has been logged in earlier only from social networks
-        return User.update(data, { where: { email: data.email} }).then(function(){
-          return res.json({success: true, msg:'User information is updated successfully.'});
-        }).catch((err) => {
-          return res.json({success: false, msg:'Something went wrong while updating user information!'});
-        });
-      }
-    });
+    console.log("user data update from client:              ", req.body);
+    User.update(
+      { addressId: req.body.addressId },
+      { where: { email: req.body.email }}
+    ).then (() => {
+      return res.json({success: true, msg:'User information is updated successfully.'});
+    }).catch((err) =>{
+      return res.json({success: false, msg:'Something went wrong while updating user information!'});
+    })
   });
+
+  //   User.findOne({where: {email: req.body.email}}).then((user) => {
+  //   if (user != null) {
+  //       // we are updating a user who has been logged in earlier only from social networks!!!!!!!!!!!! TODO
+  //       user.addressId = data.addressId;
+  //       return User.update(data, { where: { email: data.email} }).then((count,user2) => {
+  //         User.
+  //         console.log("USER UPDATE IN server:          ", user2);
+  //         return res.json({success: true, user: user2, msg:'User information is updated successfully.'});
+  //       }).catch((err) => {
+  //         return res.json({success: false, msg:'Something went wrong while updating user information!'});
+  //       });
+  //     }
+  //   });
+  // });
+
+
+
+
+    // order section
+    app.post('/order', function(req, res) {
+      console.log("ORDER form CLIENT: ", req.body);
+      return Order.create(req.body).then(function(newOrder,created){
+        if(!newOrder){
+          return res.json({success: false, msg:'Failed to register order due to db error!'});
+        }else{
+          console.log("new registered ORDER: ", newOrder);
+          return res.json({success: true, order: newOrder, msg:'Order is registered successfully.'});
+        }
+        }).catch((err) => {
+          return res.json({success: false, msg:'Something went wrong while registering new order!'});
+        });
+    });
+
+
+  app.get('/order/:id', function(req,res,next){
+    console.log("REQ>PARAM: ", req.params.id );
+    Order.findOne({
+      where: {id: req.params.id},
+      include: [ {model: User} ]
+    }).then((order) => {
+      if (!order){
+        req.msg = "No such a category in database!";
+        return res.json({success: false, msg:req.msg});
+      }else{
+        sendOrderToClient(order, "the product is found.", res);
+      }
+    }).catch(function(err){
+        console.log("###### Error : ", err);
+    });
+  })
+
+
+
+
+
+
+  app.get('/order-items/:id', function(req,res,next){
+    console.log("REQ>PARAM: ", req.params.id );
+    Order_line.findAll({
+      where: {orderId: req.params.id},
+      include: [ {model: Product
+      }]
+      }).then(order_items=>{
+      console.log("order_items with product:  " ,JSON.stringify(order_items));
+      sendOrderItemsToClient(order_items, "the items are found!", res);
+      })
+    }) 
+
+
 
 
 
   app.get('/orders/:id', function(req,res,next){
     console.log("REQ>PARAM: ", req.params.id );
-    Order.findAll({where: {user_id: req.params.id}}).then((orders) => {
+    Order.findAll({where: {userId: req.params.id}}).then((orders) => {
       if (!orders){
         req.msg = "No order for the current user in database!";
         return res.json({success: false, msg:req.msg});
@@ -675,32 +700,37 @@ function sendUserToClient(user, msg, res){
 	// 		  console.log("###### Error : ", err);
   //   });
   // })
-
+    
   //inner join test! order line is nested in product array:
-  // app.get('/order-items/:id', function(req,res,next){
-  //   console.log("REQ>PARAM: ", req.params.id );
-  //   Product.findAll({
-  //     // where: {orderId: req.params.id},
-  //     include: [
-  //       {model: Order_line , where: {orderId: req.params.id}
-  //     }]
-  //     }).then(order_items=>{
-  //     console.log("order_items with product:  " ,JSON.stringify(order_items));
-  //     sendOrderItemsToClient(order_items, "the items are found!", res);
-  //     })
-  //   })    
+  app.get('/order-items/:id', function(req,res,next){
+    console.log("REQ>PARAM: ", req.params.id );
+    Order_line.findAll({
+      where: {orderId: req.params.id},
+      include: [ {model: Product
+      }]
+      }).then(order_items=>{
+      console.log("order_items with product:  " ,JSON.stringify(order_items));
+      sendOrderItemsToClient(order_items, "the items are found!", res);
+      })
+    }) 
 
-    app.get('/order-items/:id', function(req,res,next){
-      console.log("REQ>PARAM: ", req.params.id );
-      Order_line.findAll({
-        where: {orderId: req.params.id},
-        include: [ {model: Product
-        }]
-        }).then(order_items=>{
-        console.log("order_items with product:  " ,JSON.stringify(order_items));
-        sendOrderItemsToClient(order_items, "the items are found!", res);
-        })
-      })    
+
+    // including user, order, orderline and products all together
+    // app.get('/order-items/:id', function(req,res,next){
+    //   console.log("REQ>PARAM: ", req.params.id );
+    //   User.findAll({
+    //     include: [ {model: Order, include:[
+    //       {model: Order_line , where: {orderId: req.params.id} ,  include:[
+    //         {model: Product}
+    //         ]}
+    //       ]
+    //     }]
+    //     }).then(order_items=>{
+    //     console.log("order_items with product:  " ,JSON.stringify(order_items));
+    //     sendOrderItemsToClient(order_items, "the items are found!", res);
+    //     })
+    //   })  
+
 
 
 
