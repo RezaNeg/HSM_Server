@@ -2,6 +2,8 @@ const bCrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const stripe = require('stripe')(config.stripeKey);
+const Sequelize = require('sequelize');
+
 
 module.exports = function(app,
                           user, 
@@ -476,17 +478,22 @@ function sendUserToClient(user, msg, res){
     });
   })
 
-
+// TODO this part has changed product-details output (I did this becuase of category adding!!!!!)
   app.get('/category/:id', function(req,res,next){
     console.log("REQ>PARAM: ", req.params.id );
-    Category.findOne({where: {id: req.params.id}}).then((category) => {
-      if (!category){
-        req.msg = "No such a category in database!";
-        return res.json({success: false, msg:req.msg});
-      }else{
-        sendCategoryToClient(category, "the product is found.", res);
-      }
-    }).catch(function(err){
+
+    Product.findAll({
+      where: {categoryId: req.params.id},
+      include: [ {model: Category}]
+      }).then((product) => {
+        if (!product){
+          req.msg = "No such a category in database!";
+          return res.json({success: false, msg:req.msg});
+        }else{
+          console.log("selected category list: ", JSON.stringify(product));
+          sendCategoryToClient(product, "the product is found.", res);
+        }
+      }).catch(function(err){
 			  console.log("###### Error : ", err);
     });
   })
@@ -706,8 +713,7 @@ function sendUserToClient(user, msg, res){
     console.log("REQ>PARAM: ", req.params.id );
     Order_line.findAll({
       where: {orderId: req.params.id},
-      include: [ {model: Product
-      }]
+      include: [{model: Product }]
       }).then(order_items=>{
       console.log("order_items with product:  " ,JSON.stringify(order_items));
       sendOrderItemsToClient(order_items, "the items are found!", res);
@@ -731,7 +737,34 @@ function sendUserToClient(user, msg, res){
     //     })
     //   })  
 
+    //search section
+    
 
+    app.get('/product', function(req,res,next){
+      // console.log("REQ>SEARCH for .query: ", req.query, " body", req.body );
+      // console.log("REQ: ", req );
+      console.log("REQ.query: ", req.query );
+      // console.log("REQ.search: ", req.search );
+      console.log("limit: ", req.query.limit);
+      Product.findAll({
+        where: [{desc: {$like: '%'+req.query.query+'%'}}],
+        include: [{model: Category }],
+        limit: parseInt(req.query.limit),
+        subQuery:false
+      }).then((products) => {
+        if (products.length == 0){
+          req.msg = "No products with the search criteria!";
+          return res.json({success: false, msg:req.msg});
+        }else{
+          // console.log("PROD search : ", products);
+          console.log("List of porducts: ", JSON.stringify(products));
+          sendProductsToClient(products, "the products are found!", res);
+        }
+      }).catch(function(err){
+          console.log("###### Error : ", err);
+      });
+    })
+      
 
 
 function sendProductToClient(product, msg, res){
