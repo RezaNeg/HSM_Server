@@ -61,7 +61,8 @@ const authRoute = require('./routes/routes.js')(app,
                                                 models.order,
                                                 models.order_line,
                                                 models.shipping_method,
-                                                models.address);
+                                                models.address,
+                                                models.payment_method);
 
 // statring server
 app.listen(port, (err) => {

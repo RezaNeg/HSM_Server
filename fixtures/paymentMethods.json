@@ -1,0 +1,62 @@
+[
+    {
+        "model": "payment_method",
+        "keys": ["id"],
+        "data": {
+            "id": 1,
+            "name": "Master Card",
+            "image": "./assets/img/paymentMethods/master.svg",
+            "active": true
+        }
+    },
+    {
+        "model": "payment_method",
+        "keys": ["id"],
+        "data": {
+            "id": 2,
+            "name": "Visa",
+            "image": "./assets/img/paymentMethods/visa.svg",
+            "active": true
+        }
+    },
+    {
+        "model": "payment_method",
+        "keys": ["id"],
+        "data": {
+            "id": 3,
+            "name": "PayPal",
+            "image": "./assets/img/paymentMethods/paypal.svg",
+            "active": true
+        }
+    },
+    {
+        "model": "payment_method",
+        "keys": ["id"],
+        "data": {
+            "id": 4,
+            "name": "Bitcoin",
+            "image": "./assets/img/paymentMethods/bitcoin.svg",
+            "active": false
+        }
+    },
+    {
+        "model": "payment_method",
+        "keys": ["id"],
+        "data": {
+            "id": 5,
+            "name": "Stripe",
+            "image": "./assets/img/paymentMethods/stripe.svg",
+            "active": true
+        }
+    },
+    {
+        "model": "payment_method",
+        "keys": ["id"],
+        "data": {
+            "id": 5,
+            "name": "Shopify",
+            "image": "./assets/img/paymentMethods/shopify.svg",
+            "active": true
+        }
+    }
+]

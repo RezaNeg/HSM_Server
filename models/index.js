@@ -76,4 +76,9 @@ db.sequelize.models.user.belongsTo(db.sequelize.models.address);
 // db.sequelize.models.user.belongsToMany(db.sequelize.models.address, {through: 'UserAddress'});
 // db.sequelize.models.address.belongsToMany(db.sequelize.models.user, {through: 'UserAddress'});
 
+
+// 1 to many relation
+db.sequelize.models.payment_method.hasMany(db.sequelize.models.order);
+db.sequelize.models.order.belongsTo(db.sequelize.models.payment_method);
+
 module.exports = db;

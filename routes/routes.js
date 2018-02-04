@@ -5,17 +5,19 @@ const stripe = require('stripe')(config.stripeKey);
 const Sequelize = require('sequelize');
 
 
-module.exports = function(app,
-                          user, 
-                          auth_user, 
-                          product, 
-                          payment, 
-                          category, 
-                          customer,
-                          order,
-                          order_line,
-                          shipping_method,
-                          address){
+module.exports = (app,
+                  user, 
+                  auth_user, 
+                  product, 
+                  payment, 
+                  category, 
+                  customer,
+                  order,
+                  order_line,
+                  shipping_method,
+                  address,
+                  payment_method
+                ) => {
 	const User = user;
   const Auth_user = auth_user;
   const Product = product;
@@ -26,12 +28,13 @@ module.exports = function(app,
   const Order_line = order_line;
   const Shipping_method = shipping_method;
   const Address = address;
+  const Payment_method = payment_method
 
   // login section
-  app.post('/users/login', function(req, res) {
+  app.post('/users/login', (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-		User.findOne({ where : { email: email}}).then(function (user) {
+		User.findOne({ where : { email: email}}).then((user) => {
       if (!user) {
         req.msg = "No such a user!";
         return res.json({success: false, msg:req.msg});
@@ -44,13 +47,13 @@ module.exports = function(app,
       }else{
         sendUserToClient(user.get(),"You are successfully logged in.", res);
         }
-      }).catch(function(err){
+      }).catch((err) => {
 			  console.log("###### Error : ", err);												
     });
   });
 
   // signup section
-	app.post("/users/signup", function(req, res) {
+	app.post("/users/signup", (req, res) => {
 		// I dont check for passwords mismatch error as I did it in client side
 		const password_salt = bCrypt.genSaltSync(9);
     const userPassword  = bCrypt.hashSync(req.body.password, password_salt, null);
@@ -61,18 +64,18 @@ module.exports = function(app,
                 firstname    	: req.body.firstname,
                 lastname 	    : req.body.lastname    
                 };
-    User.findOne({where: {email:req.body.email}}).then(function(user) {
+    User.findOne({where: {email:req.body.email}}).then((user) => {
 			if(user && user.password != null) {
 				return res.json({success: false, msg:'That email is already taken!'});
 			}else if (user && user.password == null) {
         // we are updating a user who has been logged in earlier only from social networks
-        return User.update(data, { where: { email: data.email} }).then(function(){
+        return User.update(data, { where: { email: data.email} }).then(() => {
           return res.json({success: true, msg:'User information is updated successfully.'});
         }).catch((err) => {
           return res.json({success: false, msg:'Something went wrong while updating user information!'});
         });
       }else{ // we must register new user
-        return User.create(data).then(function(newUser,created){
+        return User.create(data).then((newUser,created) => {
           if(!newUser){
             return res.json({success: false, msg:'Failed to register user due to db error!'});
           }else{
@@ -87,15 +90,15 @@ module.exports = function(app,
 
 
   // facebook section
-	app.post("/users/auth/facebook", function(req, res) {
+	app.post("/users/auth/facebook", (req, res) => {
     console.log("@@@@@@@@@@@ searching for f_id in user");
     console.log(req.body.id);
-    User.findOne({ where : { f_id: req.body.id }}).then(function (user) {
+    User.findOne({ where : { f_id: req.body.id }}).then((user) => {
       if(user){
         console.log("@@@@@@@@@@@ executing user.get");
         const userInfo = user.get();
         const token = jwt.sign(userInfo, config.secret, {
-          expiresIn: 3000
+          expiresIn: 300
         });
         req.msg = "You are successfully logged in using Facebook (as before)!";
         return res.json({ success: true,
@@ -111,7 +114,7 @@ module.exports = function(app,
                         });
       }else{
         console.log("@@@@@@@@@@@ searching for facebook email in user table");
-        return User.findOne({ where : { email : req.body.email } }).then(function(user){
+        return User.findOne({ where : { email : req.body.email } }).then((user) => {
           if(user){
             const dataForAuth_user =
             { 
@@ -128,16 +131,16 @@ module.exports = function(app,
               f_name 	: req.body.name
             };
             console.log("@@@@@@@@@@@ searching for f_id in auth_user table");
-            return Auth_user.findOne({ where : { auth_id : req.body.id }}).then(function(auth_user){
+            return Auth_user.findOne({ where : { auth_id : req.body.id }}).then((auth_user) => {
               if(auth_user){
                 console.log("@@@@@@@@@@@ Updating Auth_table with new data from facebook");
-                return Auth_user.update(dataForAuth_user, { where: { auth_id : req.body.id } }).then(function(){
+                return Auth_user.update(dataForAuth_user, { where: { auth_id : req.body.id } }).then(() => {
                   console.log("@@@@@@@@@@@ updating user table by inserting f_id and f_name");
-                  return User.update(data, { where: { email : req.body.email } }).then(function(){
+                  return User.update(data, { where: { email : req.body.email } }).then(() => {
                     console.log("@@@@@@@@@@@ executing user.get");
                     const userInfo = user.get();
                     const token = jwt.sign(userInfo, config.secret, {
-                      expiresIn: 3000
+                      expiresIn: 300
                     });
                     req.msg = "You are successfully logged in using Facebook. (new Facebook relogin)";
                     return res.json({ success: true,
@@ -155,17 +158,17 @@ module.exports = function(app,
                 });
               }else{
                 console.log("@@@@@@@@@@@ No f_id and creating new facebook user in auth-user table");
-                return Auth_user.create(dataForAuth_user).then(function(newAuthUser,created){
+                return Auth_user.create(dataForAuth_user).then((newAuthUser,created) => {
                   if(!newAuthUser){
                     return res.json({success: false, msg:'Problem in registering your Facebook profile!'});
                   }else{
                     console.log("A new facebook user is created!");
                     console.log("@@@@@@@@@@@ updating user table by inserting f_id and f_name");
-                    return User.update(data, { where: { email : req.body.email } }).then(function(){
+                    return User.update(data, { where: { email : req.body.email } }).then(() => {
                       console.log("@@@@@@@@@@@ executing user.get");
                       const userInfo = user.get();
                       const token = jwt.sign(userInfo, config.secret, {
-                        expiresIn: 3000
+                        expiresIn: 300
                       });
                       req.msg = "You are successfully logged in using Facebook. (first Facebook login)";
                       return res.json({ success: true,
@@ -195,7 +198,7 @@ module.exports = function(app,
               email 		  : req.body.email
             };
             console.log("@@@@@@@@@@@ creating a new user based on facebook profile");
-            return User.create(dataForUser).then(function(newUser,created){
+            return User.create(dataForUser).then((newUser,created) => {
               if(!newUser){
                 return res.json({success: false, msg:'Problem in creating your local profile based on facebook data!'});
               }else{
@@ -210,7 +213,7 @@ module.exports = function(app,
                   providerId : 1
                 };
                 console.log("@@@@@@@@@@@ creating a new facebook profile");
-                return Auth_user.create(dataForAuth_user).then(function(newAuthUser,created){
+                return Auth_user.create(dataForAuth_user).then((newAuthUser,created) => {
                   if(!newAuthUser){
                     return res.json({success: false, msg:'Problem in registering your new Facebook profile!'});
                   }else{
@@ -218,7 +221,7 @@ module.exports = function(app,
                     const userInfo = newUser.get();
                     console.log("STRINGIFIED NEW USER: ", userInfo)
                     const token = jwt.sign(userInfo, config.secret, {
-                      expiresIn: 3000
+                      expiresIn: 300
                     });
                     req.msg = "You are successfully logged in using Facebook. (first login ever)";
                     return res.json({ success: true,
@@ -244,7 +247,7 @@ module.exports = function(app,
 
 
   // all social logins together (facebook, google and linkedin)
-  app.post("/users/auth/social", function(req, res) {
+  app.post("/users/auth/social", (req, res) => {
     console.log("Request body from client: ", req.body);
     // data initiation
     console.log("START OF SOCIAL LOGIN AT SERVER SIDE: ..........");
@@ -314,14 +317,14 @@ module.exports = function(app,
           if(user){
             dataForAuth_user.userId = user.id;
             console.log("@@@@@@@@@@@ searching for auth_id in auth_user table");
-            return Auth_user.findOne({ where : { auth_id: socialId } }).then((auth_user) =>{
+            return Auth_user.findOne({ where : { auth_id: socialId } }).then((auth_user) => {
               if(auth_user){
                 console.log("@@@@@@@@@@@ Updating Auth_table with new data from social network");
-                return Auth_user.update(dataForAuth_user, { where: { auth_id : socialId } }).then(() =>{
+                return Auth_user.update(dataForAuth_user, { where: { auth_id : socialId } }).then(() => {
                   console.log("@@@@@@@@@@@ updating user table by inserting social data");
-                  return User.update(updUser, { where: { email : req.body.email } }).then(() =>{
-                    User.findOne({ where : { email : req.body.email }}).then((user) =>{
-                      sendUserToClient(user.get(), "You are successfully logged in using social networks. (new social for existing local user)", res);
+                  return User.update(updUser, { where: { email : req.body.email } }).then(() => {
+                    User.findOne({ where : { email : req.body.email }}).then((user) => {
+                      sendUserToClient(user.get(), "Welcome back! You are successfully logged in using social networks!", res);
                     });
                   });
                 });
@@ -335,7 +338,7 @@ module.exports = function(app,
                     console.log("@@@@@@@@@@@ updating user table by inserting social data");
                     return User.update(updUser, { where: { email : req.body.email } }).then(() => {
                       User.findOne({ where : { email : req.body.email }}).then((user) =>{
-                        sendUserToClient(user.get(), "You are successfully logged in using social networks. (for the first time)", res);
+                        sendUserToClient(user.get(), "You are successfully logged in using social networks.", res);
                       });
                     });
                   }
@@ -368,7 +371,7 @@ module.exports = function(app,
 
 function sendUserToClient(user, msg, res){
   const token = jwt.sign(user, config.secret, {
-    expiresIn: 3000  
+    expiresIn: 300  
   });
   user.password = null;
   user.password_salt = null;
@@ -380,10 +383,10 @@ function sendUserToClient(user, msg, res){
 }
 
  // profile section
-	app.get('/users/profile', function(req, res, next) {
+	app.get('/users/profile', (req, res, next) => {
     console.log("Header authorization from client: ", req.headers.authorization);
     let str = req.headers.authorization;
-    jwt.verify(str.substring(4), config.secret, function(err, user) {
+    jwt.verify(str.substring(4), config.secret, (err, user) => {
       if(!err){
         console.log("decoded user: ", user);
         //check it..........TODO.............. YOU better send only what is required not all of the user info backto client
@@ -395,7 +398,7 @@ function sendUserToClient(user, msg, res){
 
 
 
-  app.get('/product-detail/:id', function(req,res,next){
+  app.get('/product-detail/:id', (req,res,next) => {
     console.log("REQ>PARAM: ", req.params.id );
     Product.findOne({where: {id: req.params.id}}).then((product) => {
       if (!product){
@@ -404,22 +407,22 @@ function sendUserToClient(user, msg, res){
       }else{
         sendProductToClient(product, "the product is found.", res);
       }
-    }).catch(function(err){
+    }).catch((err) => {
 			  console.log("###### Error : ", err);
     });
   })
 
-  app.get('/products', function(req,res,next) {
+  app.get('/products', (req,res,next) => {
     // console.log("REQ from client: ", req);
 
-    Product.findAll().then(function (product) {
+    Product.findAll().then((product) => {
       if (!product) {
         req.msg = "No product in database!";
         return res.json({success: false, msg:req.msg});
       }else{
         sendProductsToClient(product,"products are loaded successfully.", res);
         }
-      }).catch(function(err){
+      }).catch((err) => {
 			  console.log("###### Error : ", err);												
     });
   })
@@ -448,7 +451,7 @@ function sendUserToClient(user, msg, res){
           console.log("CHARGE is NULL!", err);
         } 
       console.log("CHARGE: ", charge);
-      return Payment.create(payment).then(function(newPayment, created){
+      return Payment.create(payment).then((newPayment, created) => {
         if(!newPayment){
           return res.json({success: false, msg: 'Failed to add new payment to the database!'});
         }else{
@@ -463,23 +466,23 @@ function sendUserToClient(user, msg, res){
 
   
   // category section
-  app.get('/category', function(req,res,next) {
+  app.get('/category', (req,res,next) => {
     // console.log("CAT REQ from client: ", req);
 
-    Category.findAll().then(function (category) {
+    Category.findAll().then((category) => {
       if (!category) {
         req.msg = "No category in database!";
         return res.json({success: false, msg:req.msg});
       }else{
         sendCategoriesToClient(category, "Categories are loaded successfully.", res);
         }
-      }).catch(function(err){
+      }).catch((err) => {
 			  console.log("###### Error : ", err);												
     });
   })
 
 // TODO this part has changed product-details output (I did this becuase of category adding!!!!!)
-  app.get('/category/:id', function(req,res,next){
+  app.get('/category/:id', (req,res,next) => {
     console.log("REQ>PARAM: ", req.params.id );
 
     Product.findAll({
@@ -493,30 +496,30 @@ function sendUserToClient(user, msg, res){
           console.log("selected category list: ", JSON.stringify(product));
           sendCategoryToClient(product, "the product is found.", res);
         }
-      }).catch(function(err){
+      }).catch((err) => {
 			  console.log("###### Error : ", err);
     });
   })
 
 
       // shipping method section
-  app.get('/shipping-method', function(req,res,next) {
-    console.log("SHIP METHOD REQ from client: ", req.body);
+  app.get('/shipping-method', (req,res,next) => {
+    // console.log("SHIP METHOD REQ from client: ", req.body);
 
-    Shipping_method.findAll().then(function (shipping_methods) {
+    Shipping_method.findAll().then((shipping_methods) => {
       if (!shipping_methods) {
         req.msg = "No category in database!";
         return res.json({success: false, msg:req.msg});
       }else{
         sendShippingMethodsToClient(shipping_methods, "Categories are loaded successfully.", res);
         }
-      }).catch(function(err){
+      }).catch((err) => {
 			  console.log("###### Error : ", err);												
     });
   })
 
 
-  app.get('/shipping-method/:id', function(req,res,next){
+  app.get('/shipping-method/:id', (req,res,next) => {
     console.log("REQ>PARAM: ", req.params.id );
     Shipping_method.findOne({where: {id: req.params.id}}).then((shipping_method) => {
       if (!shipping_method){
@@ -525,18 +528,40 @@ function sendUserToClient(user, msg, res){
       }else{
         sendShippingMethodToClient(shipping_method, "the product is found.", res);
       }
-    }).catch(function(err){
+    }).catch((err) => {
 			  console.log("###### Error : ", err);
     });
   })
 
+      // payment method section
+      app.get('/payment-methods', (req,res,next) => {
+        // console.log("Payment METHOD REQ from client: ", req.body);
+        Payment_method.findAll().then((payment_methods) => {
+          if (!payment_methods) {
+            return res.json({
+              success: false,
+              msg:"No payment method found in database!"
+            });
+          }else{
+            console.log("payment method extracted in server: ", payment_methods);
+            return res.json({
+              success: true,
+              msg: "payment methods load successfully!",
+              payment_methods: payment_methods
+            });
+            }
+          }).catch((err) => {
+            console.log("###### Error : ", err);												
+        });
+      })
+
 
   // Address section
-  app.post('/address', function(req, res) {
+  app.post('/address', (req, res) => {
     console.log("Address form CLIENT: ", req.body);
     Address.findOne({where: {id: req.body.id}}).then((address) =>{
       if (!address){
-        return Address.create(req.body).then(function(newAddress,created){
+        return Address.create(req.body).then((newAddress,created) => {
           if(!newAddress){
             return res.json({success: false, msg:'Failed to register address due to db error!'});
           }else{
@@ -548,7 +573,7 @@ function sendUserToClient(user, msg, res){
             // return res.json({success: false, msg:'Something went wrong while registering new address!'});
           });
       }else{
-        return Address.update(req.body, {where: {id: req.body.id}}).then(()=>{
+        return Address.update(req.body, {where: {id: req.body.id}}).then(() => {
           return res.json({success: true, address: req.body, msg:'address updated!'});
         }).catch((err) => {
           return res.json({success: false, msg:'Something went wrong while updating user address!'});
@@ -559,7 +584,7 @@ function sendUserToClient(user, msg, res){
   });
 
   // Get specifique address
-  app.get('/address/:id', function(req,res,next){
+  app.get('/address/:id', (req,res,next) => {
     console.log("REQ>PARAM: ", req.params.id );
     Address.findOne({where: {id: req.params.id}}).then((address) => {
       if (!address){
@@ -569,14 +594,14 @@ function sendUserToClient(user, msg, res){
         console.log("address from server: ", address.dataValues);
         sendAddressToClient(address, "the address is found.", res);
       }
-    }).catch(function(err){
+    }).catch((err) => {
 			  console.log("###### Error : ", err);
     });
   })
 
 
   // update user section
-	app.put("/users", function(req, res) {
+	app.put("/users", (req, res) => {
     const data = req.body;
     console.log("user data update from client:              ", req.body);
     User.update(
@@ -584,33 +609,16 @@ function sendUserToClient(user, msg, res){
       { where: { email: req.body.email }}
     ).then (() => {
       return res.json({success: true, msg:'User information is updated successfully.'});
-    }).catch((err) =>{
+    }).catch((err) => {
       return res.json({success: false, msg:'Something went wrong while updating user information!'});
     })
   });
 
-  //   User.findOne({where: {email: req.body.email}}).then((user) => {
-  //   if (user != null) {
-  //       // we are updating a user who has been logged in earlier only from social networks!!!!!!!!!!!! TODO
-  //       user.addressId = data.addressId;
-  //       return User.update(data, { where: { email: data.email} }).then((count,user2) => {
-  //         User.
-  //         console.log("USER UPDATE IN server:          ", user2);
-  //         return res.json({success: true, user: user2, msg:'User information is updated successfully.'});
-  //       }).catch((err) => {
-  //         return res.json({success: false, msg:'Something went wrong while updating user information!'});
-  //       });
-  //     }
-  //   });
-  // });
-
-
-
 
     // order section
-    app.post('/order', function(req, res) {
+    app.post('/order', (req, res) => {
       console.log("ORDER form CLIENT: ", req.body);
-      return Order.create(req.body).then(function(newOrder,created){
+      return Order.create(req.body).then((newOrder,created) => {
         if(!newOrder){
           return res.json({success: false, msg:'Failed to register order due to db error!'});
         }else{
@@ -623,11 +631,14 @@ function sendUserToClient(user, msg, res){
     });
 
 
-  app.get('/order/:id', function(req,res,next){
+  app.get('/order/:id', (req,res,next) => {
     console.log("REQ>PARAM: ", req.params.id );
     Order.findOne({
       where: {id: req.params.id},
-      include: [ {model: User} ]
+      // include: [ {model: User,
+      //   include: [ {model: Payment_method}]},
+      // ]
+      include: [ {all: true, nested: true}]
     }).then((order) => {
       if (!order){
         req.msg = "No such a category in database!";
@@ -635,7 +646,7 @@ function sendUserToClient(user, msg, res){
       }else{
         sendOrderToClient(order, "the product is found.", res);
       }
-    }).catch(function(err){
+    }).catch((err) => {
         console.log("###### Error : ", err);
     });
   })
@@ -645,13 +656,13 @@ function sendUserToClient(user, msg, res){
 
 
 
-  app.get('/order-items/:id', function(req,res,next){
+  app.get('/order-items/:id', (req,res,next) => {
     console.log("REQ>PARAM: ", req.params.id );
     Order_line.findAll({
       where: {orderId: req.params.id},
       include: [ {model: Product
       }]
-      }).then(order_items=>{
+      }).then((order_items) => {
       console.log("order_items with product:  " ,JSON.stringify(order_items));
       sendOrderItemsToClient(order_items, "the items are found!", res);
       })
@@ -661,7 +672,7 @@ function sendUserToClient(user, msg, res){
 
 
 
-  app.get('/orders/:id', function(req,res,next){
+  app.get('/orders/:id', (req,res,next) => {
     console.log("REQ>PARAM: ", req.params.id );
     Order.findAll({where: {userId: req.params.id}}).then((orders) => {
       if (!orders){
@@ -671,16 +682,16 @@ function sendUserToClient(user, msg, res){
         console.log("List of Orders by the current User: ", JSON.stringify(orders));
         sendOrdersToClient(orders, "the orders are found!", res);
       }
-    }).catch(function(err){
+    }).catch((err) => {
 			  console.log("###### Error : ", err);
     });
   })
   
 
-  app.post('/order-items/:id', function(req, res, next) {
+  app.post('/order-items/:id', (req, res, next) => {
     console.log("ORDER items form CLIENT: ", req.body);
     console.log("REQ>PARAM (order number): ", req.params.id );
-    return Order_line.create(req.body).then(function(newOrderLine,created){
+    return Order_line.create(req.body).then((newOrderLine,created) => {
       if(!newOrderLine){
         return res.json({success: false, msg:'Failed to register order line due to db error!'});
       }else{
@@ -709,12 +720,12 @@ function sendUserToClient(user, msg, res){
   // })
     
   //inner join test! order line is nested in product array:
-  app.get('/order-items/:id', function(req,res,next){
+  app.get('/order-items/:id', (req,res,next) => {
     console.log("REQ>PARAM: ", req.params.id );
     Order_line.findAll({
       where: {orderId: req.params.id},
       include: [{model: Product }]
-      }).then(order_items=>{
+      }).then((order_items) => {
       console.log("order_items with product:  " ,JSON.stringify(order_items));
       sendOrderItemsToClient(order_items, "the items are found!", res);
       })
@@ -740,7 +751,7 @@ function sendUserToClient(user, msg, res){
     //search section
     
 
-    app.get('/product', function(req,res,next){
+    app.get('/product', (req,res,next) => {
       // console.log("REQ>SEARCH for .query: ", req.query, " body", req.body );
       // console.log("REQ: ", req );
       console.log("REQ.query: ", req.query );
@@ -760,11 +771,12 @@ function sendUserToClient(user, msg, res){
           console.log("List of porducts: ", JSON.stringify(products));
           sendProductsToClient(products, "the products are found!", res);
         }
-      }).catch(function(err){
+      }).catch((err) => {
           console.log("###### Error : ", err);
       });
     })
       
+
 
 
 function sendProductToClient(product, msg, res){
